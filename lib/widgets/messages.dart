@@ -1,6 +1,6 @@
-import 'package:firesharechat/constants/firebase.dart';
-import 'package:firesharechat/controller/messageController.dart';
-import 'package:firesharechat/widgets/message_bubble.dart';
+import 'package:fireshare/constants/firebase.dart';
+import 'package:fireshare/controller/message_controller.dart';
+import 'package:fireshare/widgets/message_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -14,8 +14,8 @@ class Messages extends StatelessWidget {
     final MessageController _controller = Get.find();
     final _data = _controller.messages;
     return Obx(
-      () => _data.value.length == 0
-          ? Center(child: CircularProgressIndicator())
+      () => _data.value.isEmpty
+          ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               reverse: true,
               itemCount: _data.value.length,

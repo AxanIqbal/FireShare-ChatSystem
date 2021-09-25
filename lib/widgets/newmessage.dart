@@ -1,4 +1,4 @@
-import 'package:firesharechat/controller/messageController.dart';
+import 'package:fireshare/controller/message_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,8 +12,8 @@ class NewMessage extends StatelessWidget {
     final MessageController c = Get.find();
 
     return Container(
-        margin: EdgeInsets.only(top: 8),
-        padding: EdgeInsets.all(8),
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.all(8),
         child: GetX<MessageController>(
           init: c,
           builder: (controller) => Row(
@@ -28,15 +28,15 @@ class NewMessage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide.none,
                       )),
-                  onChanged: controller.setEntredMessage,
+                  onChanged: controller.setEnteredMessage,
                   controller: c.controller,
                 ),
               ),
               IconButton(
-                onPressed: controller.entredmessage.value.trim().isNotEmpty
+                onPressed: controller.enteredMessage.value.trim().isNotEmpty
                     ? null
                     : c.sendMessage,
-                icon: Icon(Icons.send),
+                icon: const Icon(Icons.send),
                 color: Theme.of(context).primaryColor,
               ),
             ],
