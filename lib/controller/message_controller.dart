@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firesharechat/constants/firebase.dart';
-import 'package:firesharechat/controller/authController.dart';
-import 'package:firesharechat/models/message.dart';
+import 'package:fireshare/constants/firebase.dart';
+import 'package:fireshare/controller/auth_controller.dart';
+import 'package:fireshare/models/message.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,11 +9,11 @@ class MessageController extends GetxController {
   MessageController({required this.collection});
 
   String collection;
-  var entredmessage = ''.obs;
+  var enteredMessage = ''.obs;
   Rx<List<Message>> messages = Rx<List<Message>>([]);
   late final CollectionReference<Message> collectionRef;
   final UserController user = Get.find();
-  final controller = new TextEditingController();
+  final controller = TextEditingController();
 
   @override
   void onInit() {
@@ -24,7 +24,7 @@ class MessageController extends GetxController {
         .collection('messages')
         .withConverter<Message>(
             fromFirestore: (snapshots, _) =>
-                Message.fromJson({...snapshots.data()!,"uid": ""}),
+                Message.fromJson({...snapshots.data()!, "uid": ""}),
             toFirestore: (message, _) => message.toJson());
   }
 
@@ -42,10 +42,10 @@ class MessageController extends GetxController {
         .map((QuerySnapshot<Message> ds) {
       List<Message> messageList = [];
       List<String> uid = [];
-      ds.docs.forEach((QueryDocumentSnapshot<Message> element) {
+      for (var element in ds.docs) {
         messageList.add(element.data());
         uid.add(element.id);
-      });
+      }
       for (var i = 0; i < messageList.length; i++) {
         messageList[i].uid = uid[i];
       }
@@ -53,14 +53,14 @@ class MessageController extends GetxController {
     });
   }
 
-  setEntredMessage(String text) {
-    entredmessage = RxString(text);
+  setEnteredMessage(String text) {
+    enteredMessage = RxString(text);
   }
 
   sendMessage() {
     return collectionRef
         .add(Message(
-          text: entredmessage.value,
+          text: enteredMessage.value,
           userId: auth.currentUser!.uid,
           username: user.userProfile!.username,
           createdAt: Timestamp.now(),

@@ -16,7 +16,7 @@ class Splash extends StatelessWidget {
               CircularProgressIndicator(
                 backgroundColor: Theme.of(context).accentColor,
               ),
-              Text("Splash")
+              const Text("Splash")
             ],
           ),
         ));

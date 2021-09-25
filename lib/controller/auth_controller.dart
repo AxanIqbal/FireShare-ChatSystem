@@ -1,7 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firesharechat/models/userProfile.dart';
-import 'package:firesharechat/screens/auth_screen.dart';
-import 'package:firesharechat/screens/chat_screen.dart';
+import 'package:fireshare/models/user_profile.dart';
+import 'package:fireshare/screens/auth_screen.dart';
 import 'package:get/get.dart';
 import '../constants/firebase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,13 +22,17 @@ class UserController extends GetxController {
   _setInitialScreen(User? user) {
     if (user == null) {
       userProfile = null;
-      Get.offAll(() => AuthScreen());
+      Get.offAll(() => const AuthScreen());
     } else {
-      firebaseFirestore.collection('users').doc(user.uid).withConverter<UserProfile>(
-          fromFirestore: (snapshots, _) =>
-              UserProfile.fromJson(snapshots.data()!),
-          toFirestore: (message, _) => message.toJson()).get().then((value) => userProfile = value.data());
-      Get.offAll(() => ChatScreen());
+      firebaseFirestore
+          .collection('users')
+          .doc(user.uid)
+          .withConverter<UserProfile>(
+              fromFirestore: (snapshots, _) =>
+                  UserProfile.fromJson(snapshots.data()!),
+              toFirestore: (message, _) => message.toJson())
+          .get()
+          .then((value) => userProfile = value.data());
     }
   }
 }

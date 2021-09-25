@@ -1,14 +1,19 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firesharechat/constants/firebase.dart';
-import 'package:firesharechat/models/userProfile.dart';
-import 'package:firesharechat/picker/user_image_picker.dart';
+import 'package:fireshare/constants/firebase.dart';
+import 'package:fireshare/controller/auth_controller.dart';
+import 'package:fireshare/models/user_profile.dart';
+import 'package:fireshare/picker/user_image_picker.dart';
+import 'package:fireshare/screens/messenger_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
+
+import 'chat_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -18,12 +23,22 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  final UserController c = Get.find();
+
+  @override
+  void initState() {
+    if (c.userProfile != null) {
+      Get.offAll(const MessengerScreen());
+    }
+    super.initState();
+  }
+
   final _formKey = GlobalKey<FormBuilderState>();
   var _isLogIn = true;
   var _isLoading = false;
-  PickedFile? pickedImage;
+  File? pickedImage;
 
-  void imagePickFunc(PickedFile? file) {
+  void imagePickFunc(File? file) {
     pickedImage = file;
   }
 
@@ -81,10 +96,20 @@ class _AuthScreenState extends State<AuthScreen> {
         //   Get.snackbar('Success', 'Done Uploading');
         //   print("Done uploading");
         // });
+        await firebaseFirestore
+            .collection('users')
+            .doc(authResult.user!.uid)
+            .set(UserProfile(
+                email: email,
+                username: username,
+                friends: [],
+                blocked: []).toJson())
+            .catchError((e) => Get.snackbar('Error', e));
+
+        Reference _reference = FirebaseStorage.instance
+            .ref()
+            .child('user_image/${authResult.user!.uid}');
         if (kIsWeb) {
-          Reference _reference = FirebaseStorage.instance
-              .ref()
-              .child('user_image/${authResult.user!.uid}');
           await _reference
               .putData(
             await pickedImage!.readAsBytes(),
@@ -92,25 +117,20 @@ class _AuthScreenState extends State<AuthScreen> {
           )
               .whenComplete(() async {
             await _reference.getDownloadURL().then((value) async {
-              await firebaseFirestore
-                  .collection('users')
-                  .doc(authResult.user!.uid)
-                  .set(
-                  UserProfile(
-                      email: email,
-                      username: username,
-                      pictureUrl: value,
-                      friends: [],
-                      blocked: []).toJson()).catchError((e) => Get.snackbar('Error', e));
-              var uploadedPhotoUrl = value;
-              print(uploadedPhotoUrl);
+              await authResult.user!.updatePhotoURL(value);
             });
           });
         } else {
           //write a code for android or ios
 
+          await _reference.putFile(pickedImage!).whenComplete(() async {
+            await _reference.getDownloadURL().then((value) async {
+              await authResult.user!.updatePhotoURL(value);
+            });
+          });
         }
       }
+      Get.offAll(() => const MessengerScreen());
     } on FirebaseAuthException catch (e) {
       var message = 'An error occurred, please check your credentials!';
 
@@ -123,7 +143,6 @@ class _AuthScreenState extends State<AuthScreen> {
       });
       // Theme.of(context).snackBarTheme
     } catch (err) {
-      print(err);
       setState(() {
         _isLoading = false;
       });
@@ -137,7 +156,7 @@ class _AuthScreenState extends State<AuthScreen> {
       body: Center(
         child: Row(
           children: [
-            Expanded(flex: 1, child: SizedBox()),
+            const Expanded(flex: 1, child: SizedBox()),
             Expanded(
               flex: 5,
               child: Card(
@@ -163,7 +182,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                   errorText:
                                       'Please Enter a valid email address')
                             ]),
-                            decoration: InputDecoration(labelText: 'Email'),
+                            decoration:
+                                const InputDecoration(labelText: 'Email'),
                           ),
                           if (!_isLogIn)
                             FormBuilderTextField(
@@ -173,7 +193,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 FormBuilderValidators.minLength(context, 3),
                               ]),
                               decoration:
-                                  InputDecoration(labelText: 'Username'),
+                                  const InputDecoration(labelText: 'Username'),
                             ),
                           FormBuilderTextField(
                             name: 'password',
@@ -182,7 +202,8 @@ class _AuthScreenState extends State<AuthScreen> {
                               FormBuilderValidators.required(context),
                               FormBuilderValidators.minLength(context, 6)
                             ]),
-                            decoration: InputDecoration(labelText: 'Password'),
+                            decoration:
+                                const InputDecoration(labelText: 'Password'),
                           ),
                           if (!_isLogIn)
                             FormBuilderTextField(
@@ -201,13 +222,13 @@ class _AuthScreenState extends State<AuthScreen> {
                                   return null;
                                 }
                               ]),
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                   labelText: 'Confirm Password'),
                             ),
-                          SizedBox(
+                          const SizedBox(
                             height: 12,
                           ),
-                          if (_isLoading) CircularProgressIndicator(),
+                          if (_isLoading) const CircularProgressIndicator(),
                           if (!_isLoading)
                             MaterialButton(
                               onPressed: () {
@@ -253,7 +274,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
             ),
-            Expanded(flex: 1, child: SizedBox()),
+            const Expanded(flex: 1, child: SizedBox()),
           ],
         ),
       ),

@@ -1,4 +1,4 @@
-# firesharechat
+# fireshare
 
 A new Flutter project.
 
